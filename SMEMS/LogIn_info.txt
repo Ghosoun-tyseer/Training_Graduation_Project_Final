@@ -1,0 +1,19 @@
+UserNames and Passwords For LogIn:
+
+1.Admin
+
+UserName:admin
+
+Password:Admin@123
+
+2. Engineer
+
+UserName:engineer1
+
+Password:Eng$12
+
+3. Staff 
+
+UserName:staff1
+
+Password:Staff@14
