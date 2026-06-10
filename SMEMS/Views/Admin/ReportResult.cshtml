@@ -1,0 +1,380 @@
+﻿@model ReportResultViewModel
+@{
+    ViewData["Title"] = "Report Result";
+}
+
+<div class="page-header">
+    <div class="page-title">@Model.ReportTitle</div>
+    <div class="page-subtitle">
+        Generated @Model.GeneratedAt.ToString("yyyy-MM-dd HH:mm") by @Model.GeneratedBy
+        • @Model.Statistics.TotalRecords records
+    </div>
+</div>
+
+<!-- Summary Cards -->
+@if (Model.Statistics != null)
+{
+    <div class="stat-row">
+        @if (Model.ReportType == "device" || Model.ReportType == "full")
+        {
+            <div class="stat-card">
+                <div><div class="stat-label">Total Devices</div><div class="stat-value">@Model.Statistics.TotalRecords</div></div>
+                <div class="stat-icon" style="background:var(--primary-lt);color:var(--primary);">📦</div>
+            </div>
+            <div class="stat-card">
+                <div><div class="stat-label">Operational</div><div class="stat-value">@Model.Statistics.OperationalDevices</div></div>
+                <div class="stat-icon" style="background:var(--success-lt);color:var(--success);">✓</div>
+            </div>
+            <div class="stat-card">
+                <div><div class="stat-label">Needs Maintenance</div><div class="stat-value">@Model.Statistics.MaintenanceNeeded</div></div>
+                <div class="stat-icon" style="background:var(--warning-lt);color:var(--warning);">⚠</div>
+            </div>
+            <div class="stat-card">
+                <div><div class="stat-label">Out of Service</div><div class="stat-value">@Model.Statistics.OutOfService</div></div>
+                <div class="stat-icon" style="background:var(--danger-lt);color:var(--danger);">✗</div>
+            </div>
+        }
+        @if (Model.ReportType == "maintenance" || Model.ReportType == "full")
+        {
+            <div class="stat-card">
+                <div><div class="stat-label">Total Requests</div><div class="stat-value">@Model.Statistics.TotalRecords</div></div>
+                <div class="stat-icon" style="background:var(--purple-lt);color:var(--purple);">🔧</div>
+            </div>
+            <div class="stat-card">
+                <div><div class="stat-label">Pending</div><div class="stat-value">@Model.Statistics.PendingRequests</div></div>
+                <div class="stat-icon" style="background:var(--warning-lt);color:var(--warning);">⏳</div>
+            </div>
+            <div class="stat-card">
+                <div><div class="stat-label">In Progress</div><div class="stat-value">@Model.Statistics.InProgressRequests</div></div>
+                <div class="stat-icon" style="background:var(--info-lt);color:var(--info);">⚙</div>
+            </div>
+            <div class="stat-card">
+                <div><div class="stat-label">Completed</div><div class="stat-value">@Model.Statistics.CompletedRequests</div></div>
+                <div class="stat-icon" style="background:var(--success-lt);color:var(--success);">✓</div>
+            </div>
+        }
+    </div>
+}
+
+<!-- Charts -->
+@if (Model.ChartData != null && Model.AppliedFilters.IncludeCharts)
+{
+    <div class="grid-2">
+        @if (Model.ChartData.PieChartData.Any())
+        {
+            <div class="card">
+                <div class="card-title">📊 Status Distribution</div>
+                <div class="pie-wrap">
+                    <svg width="160" height="160" viewBox="0 0 100 100">
+                        @{
+                            var total = Model.ChartData.PieChartData.Sum(x => x.Value);
+                            double currentAngle = 0;
+                        }
+                        @for (int i = 0; i < Model.ChartData.PieChartData.Count; i++)
+                        {
+                            var slice = Model.ChartData.PieChartData[i];
+                            var angle = total > 0 ? (slice.Value / (double)total) * 360 : 0;
+                            var startRad = currentAngle * Math.PI / 180;
+                            var endRad = (currentAngle + angle) * Math.PI / 180;
+                            var x1 = 50 + 40 * Math.Cos(startRad);
+                            var y1 = 50 + 40 * Math.Sin(startRad);
+                            var x2 = 50 + 40 * Math.Cos(endRad);
+                            var y2 = 50 + 40 * Math.Sin(endRad);
+                            var largeArc = angle > 180 ? 1 : 0;
+                            <path d="M 50 50 L @x1.ToString("F2") @y1.ToString("F2") A 40 40 0 @largeArc 1 @x2.ToString("F2") @y2.ToString("F2") Z" 
+                                  fill="@slice.Color" stroke="white" stroke-width="1" />
+                            currentAngle += angle;
+                        }
+                        <circle cx="50" cy="50" r="22" fill="white" />
+                        <text x="50" y="48" text-anchor="middle" font-size="10" font-weight="bold" fill="#374151">@total</text>
+                        <text x="50" y="58" text-anchor="middle" font-size="6" fill="#6B7280">Total</text>
+                    </svg>
+                    <div class="pie-legend">
+                        @foreach (var slice in Model.ChartData.PieChartData)
+                        {
+                            <div class="pie-legend-item">
+                                <div class="pie-dot" style="background:@slice.Color;"></div>
+                                @slice.Label: <strong>@slice.Value</strong>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (Model.ChartData.BarChartData.Any())
+        {
+            <div class="card">
+                <div class="card-title">📈 By Department</div>
+                @{
+                    var maxBar = Model.ChartData.BarChartData.Max(x => x.Value);
+                }
+                @foreach (var bar in Model.ChartData.BarChartData)
+                {
+                    var pct = maxBar > 0 ? (int)((bar.Value / (double)maxBar) * 100) : 0;
+                    <div class="bar-row">
+                        <div class="bar-lbl" style="font-size:11px;">@bar.Label</div>
+                        <div class="bar-track"><div class="bar-fill" style="width:@pct%;background:@bar.Color;"></div></div>
+                        <div class="bar-val" style="font-size:11px;">@bar.Value</div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+
+<!-- Device Table -->
+@if (Model.DeviceRows.Any())
+{
+    <div class="card mt-20">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div class="card-title" style="margin-bottom:0;">📦 Device Records (@Model.DeviceRows.Count)</div>
+        </div>
+        <div class="table-wrap">
+            <table class="tbl">
+                <thead>
+                    <tr>
+                        @if (Model.AppliedFilters.IncludeDeviceCode) { <th>Code</th> }
+                        @if (Model.AppliedFilters.IncludeName) { <th>Name</th> }
+                        @if (Model.AppliedFilters.IncludeModel) { <th>Model</th> }
+                        @if (Model.AppliedFilters.IncludeSerial) { <th>Serial</th> }
+                        @if (Model.AppliedFilters.IncludeManufacturer) { <th>Manufacturer</th> }
+                        @if (Model.AppliedFilters.IncludeSupplier) { <th>Supplier</th> }
+                        @if (Model.AppliedFilters.IncludeDepartment) { <th>Department</th> }
+                        @if (Model.AppliedFilters.IncludeLocation) { <th>Location</th> }
+                        @if (Model.AppliedFilters.IncludePurchaseDate) { <th>Purchase</th> }
+                        @if (Model.AppliedFilters.IncludeWarranty) { <th>Warranty</th> }
+                        @if (Model.AppliedFilters.IncludeStatusField) { <th>Status</th> }
+                        @if (Model.AppliedFilters.IncludeRisk) { <th>Risk</th> }
+                        @if (Model.AppliedFilters.IncludeNextMaintenance) { <th>Next Maint.</th> }
+                        @if (Model.AppliedFilters.IncludeFailureCount) { <th>Failures</th> }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var d in Model.DeviceRows)
+                    {
+                        <tr>
+                            @if (Model.AppliedFilters.IncludeDeviceCode) { <td><code>@d.DeviceCode</code></td> }
+                            @if (Model.AppliedFilters.IncludeName) { <td><div class="dev-name">@d.Name</div></td> }
+                            @if (Model.AppliedFilters.IncludeModel) { <td style="font-size:11px;color:var(--text-2);">@(d.ModelNumber ?? "—")</td> }
+                            @if (Model.AppliedFilters.IncludeSerial) { <td><code style="font-size:10px;">@d.SerialNumber</code></td> }
+                            @if (Model.AppliedFilters.IncludeManufacturer) { <td style="font-size:11px;">@(d.Manufacturer ?? "—")</td> }
+                            @if (Model.AppliedFilters.IncludeSupplier) { <td style="font-size:11px;">@(d.Supplier ?? "—")</td> }
+                            @if (Model.AppliedFilters.IncludeDepartment) { <td>@(d.Department ?? "—")</td> }
+                            @if (Model.AppliedFilters.IncludeLocation) { <td style="font-size:11px;">@(d.Location ?? "—")</td> }
+                            @if (Model.AppliedFilters.IncludePurchaseDate) { <td style="font-size:11px;">@(d.PurchaseDate ?? "—")</td> }
+                            @if (Model.AppliedFilters.IncludeWarranty) 
+                            { 
+                                <td>
+                                    <span class="badge @(d.WarrantyStatus == "Active" ? "b-operational" : d.WarrantyStatus == "Expired" ? "b-outofservice" : "b-needed")">
+                                        @(d.WarrantyStatus ?? "—")
+                                    </span>
+                                </td> 
+                            }
+                            @if (Model.AppliedFilters.IncludeStatusField) 
+                            { 
+                                <td>
+                                 <span class="badge @(d.Status == "Active" || d.Status == "Operational" ? "b-operational" : d.Status == "Maintenance Needed" ? "b-needed" : d.Status == "Under Maintenance" ? "b-inprogress" : d.Status.Contains("Out of", StringComparison.OrdinalIgnoreCase) ? "b-outofservice" : "b-outofservice")">
+                                     @d.Status
+                                    </span>
+                                </td> 
+                            }
+                            @if (Model.AppliedFilters.IncludeRisk) 
+                            { 
+                                <td>
+                                    <span class="badge @(d.RiskLevel == "Low" ? "b-low" : d.RiskLevel == "Medium" ? "b-medium" : d.RiskLevel == "High" ? "b-high" : "b-critical")">
+                                        @d.RiskLevel
+                                    </span>
+                                </td> 
+                            }
+                            @if (Model.AppliedFilters.IncludeNextMaintenance) { <td style="font-size:11px;">@(d.NextMaintenance ?? "—")</td> }
+                            @if (Model.AppliedFilters.IncludeFailureCount) { <td style="text-align:center;">@d.FailureCount</td> }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+<!-- Maintenance Table -->
+@if (Model.MaintenanceRows.Any())
+{
+    <div class="card mt-20">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div class="card-title" style="margin-bottom:0;">🔧 Maintenance Records (@Model.MaintenanceRows.Count)</div>
+        </div>
+        <div class="table-wrap">
+            <table class="tbl">
+                <thead>
+                    <tr>
+                        @if (Model.AppliedFilters.IncludeRequestCode) { <th>Code</th> }
+                        @if (Model.AppliedFilters.IncludeRequestDate) { <th>Date</th> }
+                        @if (Model.AppliedFilters.IncludeDeviceName) { <th>Device</th> }
+                        @if (Model.AppliedFilters.IncludeIssueTitle) { <th>Issue</th> }
+                        @if (Model.AppliedFilters.IncludeIssueDescription) { <th>Description</th> }
+                        @if (Model.AppliedFilters.IncludeType) { <th>Type</th> }
+                        @if (Model.AppliedFilters.IncludeEngineer) { <th>Engineer</th> }
+                        @if (Model.AppliedFilters.IncludeReporter) { <th>Reported By</th> }
+                        @if (Model.AppliedFilters.IncludeMaintenanceStatus) { <th>Status</th> }
+                        @if (Model.AppliedFilters.IncludeMaintenanceRisk) { <th>Risk</th> }
+                        @if (Model.AppliedFilters.IncludeStartedAt) { <th>Started</th> }
+                        @if (Model.AppliedFilters.IncludeCompletedAt) { <th>Completed</th> }
+                        @if (Model.AppliedFilters.IncludeCompletionNotes) { <th>Notes</th> }
+                        @if (Model.AppliedFilters.IncludeHasAlternative) { <th>Alt.</th> }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model.MaintenanceRows)
+                    {
+                        <tr>
+                            @if (Model.AppliedFilters.IncludeRequestCode) { <td><code>@r.RequestCode</code></td> }
+                            @if (Model.AppliedFilters.IncludeRequestDate) { <td style="font-size:11px;">@r.RequestDate</td> }
+                            @if (Model.AppliedFilters.IncludeDeviceName) 
+                            { 
+                                <td>
+                                    <div class="dev-name">@r.DeviceName</div>
+                                    @if (!string.IsNullOrEmpty(r.DeviceCode))
+                                    {
+                                        <div style="font-size:10px;color:var(--text-3);">@r.DeviceCode</div>
+                                    }
+                                </td> 
+                            }
+                            @if (Model.AppliedFilters.IncludeIssueTitle) { <td style="font-size:12px;">@r.IssueTitle</td> }
+                            @if (Model.AppliedFilters.IncludeIssueDescription) { <td style="font-size:11px;color:var(--text-2);">@(r.IssueDescription ?? "—")</td> }
+                            @if (Model.AppliedFilters.IncludeType) { <td style="font-size:11px;">@(r.MaintenanceType ?? "—")</td> }
+                            @if (Model.AppliedFilters.IncludeEngineer) { <td style="font-size:11px;">@(r.Engineer ?? "Unassigned")</td> }
+                            @if (Model.AppliedFilters.IncludeReporter) { <td style="font-size:11px;">@(r.Reporter ?? "—")</td> }
+                            @if (Model.AppliedFilters.IncludeMaintenanceStatus) 
+                            { 
+                                <td>
+                                    <span class="badge @(r.Status == "Pending" ? "b-pending" : r.Status == "In Progress" ? "b-inprogress" : "b-completed")">
+                                        @r.Status
+                                    </span>
+                                </td> 
+                            }
+                            @if (Model.AppliedFilters.IncludeMaintenanceRisk) 
+                            { 
+                                <td>
+                                    <span class="badge @(r.RiskLevel == "Low" ? "b-low" : r.RiskLevel == "Medium" ? "b-medium" : r.RiskLevel == "High" ? "b-high" : "b-critical")">
+                                        @r.RiskLevel
+                                    </span>
+                                </td> 
+                            }
+                            @if (Model.AppliedFilters.IncludeStartedAt) { <td style="font-size:11px;">@(r.StartedAt ?? "—")</td> }
+                            @if (Model.AppliedFilters.IncludeCompletedAt) { <td style="font-size:11px;">@(r.CompletedAt ?? "—")</td> }
+                            @if (Model.AppliedFilters.IncludeCompletionNotes) { <td style="font-size:11px;color:var(--text-2);">@(r.CompletionNotes ?? "—")</td> }
+                            @if (Model.AppliedFilters.IncludeHasAlternative) 
+                            { 
+                                <td style="text-align:center;">
+                                    @if (r.HasAlternative)
+                                    {
+                                        <span class="alt-yes-text">✓</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="alt-no-text">✗</span>
+                                    }
+                                </td> 
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@if (!Model.DeviceRows.Any() && !Model.MaintenanceRows.Any())
+{
+    <div class="card" style="text-align:center;padding:60px;">
+        <div style="font-size:48px;margin-bottom:16px;">📭</div>
+        <div style="font-size:18px;font-weight:600;color:var(--text-2);margin-bottom:8px;">No Records Found</div>
+        <div style="color:var(--text-3);">Try adjusting your filters to see more results.</div>
+    </div>
+}
+
+<!-- Actions -->
+<div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;">
+    <a asp-action="Reports" asp-controller="Admin" class="btn btn-outline">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        New Report
+    </a>
+    <button onclick="window.print()" class="btn btn-ghost">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 6 2 18 2 18 9"/>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+            <rect x="6" y="14" width="12" height="8"/>
+        </svg>
+        Print
+    </button>
+</div>
+
+
+<style>
+.mt-20 { margin-top: 20px; }
+.pie-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    padding: 16px;
+}
+.pie-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.pie-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-2);
+}
+.pie-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}
+.bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 0;
+}
+.bar-lbl {
+    width: 100px;
+    font-size: 12px;
+    color: var(--text-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.bar-track {
+    flex: 1;
+    height: 20px;
+    background: var(--bg);
+    border-radius: 4px;
+    overflow: hidden;
+}
+.bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s ease;
+}
+.bar-val {
+    width: 32px;
+    text-align: right;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-2);
+}
+@@media print {
+    .sidebar, .top-bar, .btn { display: none !important; }
+    .main { margin-left: 0 !important; }
+    .card { break-inside: avoid; }
+}
+</style>

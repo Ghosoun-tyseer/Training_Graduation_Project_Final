@@ -1,0 +1,106 @@
+﻿@model SMEMS.Models.MaintenanceRequest
+@{
+    ViewData["Title"] = "Request Detail";
+}
+
+<div class="page-header">
+    <div class="page-title">Maintenance Request Detail</div>
+    <div class="page-subtitle">@Model.RequestCode</div>
+</div>
+
+<div class="card" style="max-width:800px;">
+    <div style="background:var(--bg);border-radius:8px;padding:16px;margin-bottom:20px;border:1px solid var(--border);">
+        <div class="info-2col" style="gap:12px;">
+            <div class="info-field">
+                <div class="field-lbl">Device</div>
+                <div class="field-val">@Model.Device.Name</div>
+            </div>
+            <div class="info-field">
+                <div class="field-lbl">Device Code</div>
+                <div class="field-val"><code>@Model.Device.DeviceCode</code></div>
+            </div>
+            <div class="info-field">
+                <div class="field-lbl">Department</div>
+                <div class="field-val">@Model.Device.Department?.Name</div>
+            </div>
+            <div class="info-field">
+                <div class="field-lbl">Issue</div>
+                <div class="field-val">@Model.IssueTitle</div>
+            </div>
+            <div class="info-field">
+                <div class="field-lbl">Description</div>
+                <div class="field-val">@(Model.IssueDescription ?? "—")</div>
+            </div>
+            <div class="info-field">
+                <div class="field-lbl">Risk Level</div>
+                <div class="field-val">
+                    <span class="badge @(Model.RiskLevel == "High" || Model.RiskLevel == "Critical" ? "b-high" : Model.RiskLevel == "Medium" ? "b-medium" : "b-low")">
+                        @Model.RiskLevel
+                    </span>
+                </div>
+            </div>
+            <div class="info-field">
+                <div class="field-lbl">Status</div>
+                <div class="field-val">
+                    <span class="badge @(Model.Status == "Pending" ? "b-pending" : Model.Status == "In Progress" ? "b-inprogress" : "b-completed")">
+                        @Model.Status
+                    </span>
+                </div>
+            </div>
+            <div class="info-field">
+                <div class="field-lbl">Reported By</div>
+                <div class="field-val">@(Model.ReportedByStaff?.FullName ?? "—")</div>
+            </div>
+            <div class="info-field">
+                <div class="field-lbl">Assigned Engineer</div>
+                <div class="field-val">@(Model.AssignedEngineer?.FullName ?? "—")</div>
+            </div>
+            <div class="info-field">
+                <div class="field-lbl">Request Date</div>
+                <div class="field-val">@Model.RequestDate.ToString("MMMM d, yyyy")</div>
+            </div>
+            <div class="info-field">
+                <div class="field-lbl">Alternative Available</div>
+                <div class="field-val">
+                    @if (Model.HasAlternative)
+                    {
+                        <span class="alt-yes-text">Yes</span>
+                    }
+                    else
+                    {
+                        <span class="alt-no-text">No</span>
+                    }
+                </div>
+            </div>
+            @if (Model.Status == "Completed")
+            {
+                <div class="info-field">
+                    <div class="field-lbl">Completed At</div>
+                    <div class="field-val">@(Model.CompletedAt?.ToString("MMMM d, yyyy") ?? "—")</div>
+                </div>
+                <div class="info-field">
+                    <div class="field-lbl">Completion Notes</div>
+                    <div class="field-val">@(Model.CompletionNotes ?? "—")</div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <a asp-action="Maintenance" asp-controller="Engineer" class="btn btn-outline">Back</a>
+
+        @if (Model.Status == "Pending")
+        {
+            <form asp-action="StartMaintenance" asp-controller="Engineer" method="post" style="display:inline;">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.RequestId" />
+                <button type="submit" class="btn btn-primary">Start Maintenance</button>
+            </form>
+        }
+        else if (Model.Status == "In Progress")
+        {
+            <a asp-action="CompleteMaintenance" asp-controller="Engineer" asp-route-id="@Model.RequestId"
+               class="btn btn-primary">Complete</a>
+        }
+    </div>
+</div>

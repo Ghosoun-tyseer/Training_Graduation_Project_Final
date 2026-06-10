@@ -1,0 +1,505 @@
+﻿@model ReportFilterViewModel
+@{
+    ViewData["Title"] = "Reports";
+    var departments = ViewBag.Departments as IEnumerable<SMEMS.Models.Department> ?? Enumerable.Empty<SMEMS.Models.Department>();
+    var manufacturers = ViewBag.Manufacturers as IEnumerable<SMEMS.Models.Manufacturer> ?? Enumerable.Empty<SMEMS.Models.Manufacturer>();
+    var suppliers = ViewBag.Suppliers as IEnumerable<SMEMS.Models.Supplier> ?? Enumerable.Empty<SMEMS.Models.Supplier>();
+    var engineers = ViewBag.Engineers as IEnumerable<SMEMS.Models.Engineer> ?? Enumerable.Empty<SMEMS.Models.Engineer>();
+    var staff = ViewBag.Staff as IEnumerable<SMEMS.Models.Staff> ?? Enumerable.Empty<SMEMS.Models.Staff>();
+    var maintenanceTypes = ViewBag.MaintenanceTypes as IEnumerable<SMEMS.Models.MaintenanceType> ?? Enumerable.Empty<SMEMS.Models.MaintenanceType>();
+}
+
+<div class="page-header">
+    <div class="page-title">📊 Report Generation</div>
+    <div class="page-subtitle">Generate comprehensive, professional reports with advanced analytics</div>
+</div>
+
+<form asp-action="GenerateReport" asp-controller="Admin" method="post" id="reportForm">
+    @Html.AntiForgeryToken()
+
+    <input type="hidden" asp-for="ReportType" id="reportType" value="device" />
+    <input type="hidden" asp-for="Format" id="formatType" value="pdf" />
+
+    <!-- ── Report Type Tabs ── -->
+    <div class="report-tabs">
+        <button type="button" class="report-tab active" data-type="device" onclick="setReportType(this)">
+            <span>📦</span> Device Report
+        </button>
+        <button type="button" class="report-tab" data-type="maintenance" onclick="setReportType(this)">
+            <span>🔧</span> Maintenance Report
+        </button>
+        <button type="button" class="report-tab" data-type="full" onclick="setReportType(this)">
+            <span>📋</span> Full Report
+        </button>
+    </div>
+
+    <div class="grid-3c" style="align-items: start;">
+
+        <!-- ═══ DEVICE FILTERS ═══ -->
+        <div class="card report-card" id="device-filters">
+            <div class="card-title" style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:18px;">📦</span> Device Filters
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Department</label>
+                <select class="form-control" asp-for="DepartmentId">
+                    <option value="">All Departments</option>
+                    @foreach (var d in departments)
+                    {
+                        <option value="@d.DepartmentId">@d.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select class="form-control" asp-for="DeviceStatus">
+                        <option value="">All Status</option>
+                        <option value="Operational">Operational</option>
+                        <option value="Maintenance Needed">Maintenance Needed</option>
+                        <option value="Under Maintenance">Under Maintenance</option>
+               
+                        <option value="Out of Service">Out of Service</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Risk Level</label>
+                    <select class="form-control" asp-for="DeviceRiskLevel">
+                        <option value="">All Risk</option>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                        <option value="Critical">Critical</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Manufacturer</label>
+                    <select class="form-control" asp-for="ManufacturerId">
+                        <option value="">All Manufacturers</option>
+                        @foreach (var m in manufacturers)
+                        {
+                            <option value="@m.ManufacturerId">@m.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Supplier</label>
+                    <select class="form-control" asp-for="SupplierId">
+                        <option value="">All Suppliers</option>
+                        @foreach (var s in suppliers)
+                        {
+                            <option value="@s.SupplierId">@s.Name</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Purchase Date Range</label>
+                <div style="display:flex;gap:8px;">
+                    <input type="date" class="form-control" asp-for="PurchaseDateFrom" placeholder="From" />
+                    <input type="date" class="form-control" asp-for="PurchaseDateTo" placeholder="To" />
+                </div>
+            </div>
+
+            <!-- Device Fields -->
+            <div class="fields-section">
+                <div class="fields-title" onclick="toggleFields('device-fields')">
+                    <span>📋</span> Select Fields <span class="toggle-icon">▼</span>
+                </div>
+                <div class="fields-grid" id="device-fields">
+                    <label><input type="checkbox" asp-for="IncludeDeviceCode" checked> Device Code</label>
+                    <label><input type="checkbox" asp-for="IncludeName" checked> Name</label>
+                    <label><input type="checkbox" asp-for="IncludeModel"> Model</label>
+                    <label><input type="checkbox" asp-for="IncludeSerial" checked> Serial</label>
+                    <label><input type="checkbox" asp-for="IncludeManufacturer"> Manufacturer</label>
+                    <label><input type="checkbox" asp-for="IncludeSupplier"> Supplier</label>
+                    <label><input type="checkbox" asp-for="IncludeDepartment" checked> Department</label>
+                    <label><input type="checkbox" asp-for="IncludeLocation"> Location</label>
+                    <label><input type="checkbox" asp-for="IncludePurchaseDate"> Purchase Date</label>
+                    <label><input type="checkbox" asp-for="IncludeWarranty"> Warranty Status</label>
+                    <label><input type="checkbox" asp-for="IncludeStatusField" checked> Status</label>
+                    <label><input type="checkbox" asp-for="IncludeRisk"> Risk Level</label>
+                    <label><input type="checkbox" asp-for="IncludeNextMaintenance"> Next Maintenance</label>
+                    <label><input type="checkbox" asp-for="IncludeFailureCount"> Failure Count</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ MAINTENANCE FILTERS ═══ -->
+        <div class="card report-card" id="maintenance-filters" style="display:none;">
+            <div class="card-title" style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:18px;">🔧</span> Maintenance Filters
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select class="form-control" asp-for="MaintenanceStatus">
+                        <option value="">All Status</option>
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Risk Level</label>
+                    <select class="form-control" asp-for="MaintenanceRiskLevel">
+                        <option value="">All Risk</option>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                        <option value="Critical">Critical</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Maintenance Type</label>
+                    <select class="form-control" asp-for="MaintenanceType">
+                        <option value="">All Types</option>
+                        @foreach (var t in maintenanceTypes)
+                        {
+                            <option value="@t.Name">@t.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Assigned Engineer</label>
+                    <select class="form-control" asp-for="AssignedEngineerId">
+                        <option value="">All Engineers</option>
+                        @foreach (var e in engineers)
+                        {
+                            <option value="@e.EngineerId">@e.FullName</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Reported By</label>
+                <select class="form-control" asp-for="ReportedByStaffId">
+                    <option value="">All Staff</option>
+                    @foreach (var s in staff)
+                    {
+                        <option value="@s.StaffId">@s.FullName</option>
+                    }
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Request Date Range</label>
+                <div style="display:flex;gap:8px;">
+                    <input type="date" class="form-control" asp-for="RequestDateFrom" placeholder="From" />
+                    <input type="date" class="form-control" asp-for="RequestDateTo" placeholder="To" />
+                </div>
+            </div>
+
+            <!-- Maintenance Fields -->
+            <div class="fields-section">
+                <div class="fields-title" onclick="toggleFields('maintenance-fields')">
+                    <span>📋</span> Select Fields <span class="toggle-icon">▼</span>
+                </div>
+                <div class="fields-grid" id="maintenance-fields">
+                    <label><input type="checkbox" asp-for="IncludeRequestCode" checked> Request Code</label>
+                    <label><input type="checkbox" asp-for="IncludeRequestDate" checked> Date</label>
+                    <label><input type="checkbox" asp-for="IncludeDeviceName" checked> Device</label>
+                    <label><input type="checkbox" asp-for="IncludeIssueTitle" checked> Issue</label>
+                    <label><input type="checkbox" asp-for="IncludeIssueDescription"> Description</label>
+                    <label><input type="checkbox" asp-for="IncludeType"> Type</label>
+                    <label><input type="checkbox" asp-for="IncludeEngineer"> Engineer</label>
+                    <label><input type="checkbox" asp-for="IncludeReporter"> Reported By</label>
+                    <label><input type="checkbox" asp-for="IncludeMaintenanceStatus" checked> Status</label>
+                    <label><input type="checkbox" asp-for="IncludeMaintenanceRisk"> Risk</label>
+                    <label><input type="checkbox" asp-for="IncludeStartedAt"> Started At</label>
+                    <label><input type="checkbox" asp-for="IncludeCompletedAt"> Completed At</label>
+                    <label><input type="checkbox" asp-for="IncludeCompletionNotes"> Notes</label>
+                    <label><input type="checkbox" asp-for="IncludeHasAlternative"> Alternative</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ EXPORT SETTINGS ═══ -->
+        <div class="card report-card">
+            <div class="card-title" style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:18px;">⚙</span> Export Settings
+            </div>
+
+            <!-- Format -->
+            <div class="form-group">
+                <label class="form-label">Format</label>
+                <div class="format-toggle">
+                    <button type="button" class="format-btn active" data-format="pdf" onclick="setFormat(this)">
+                        <span>📄</span> PDF
+                    </button>
+                    <button type="button" class="format-btn" data-format="excel" onclick="setFormat(this)">
+                        <span>📊</span> Excel
+                    </button>
+                </div>
+            </div>
+
+            <!-- PDF Template -->
+            <div class="form-group" id="pdf-template-group">
+                <label class="form-label">PDF Template</label>
+                <select class="form-control" asp-for="PdfTemplate">
+                    <option value="professional">Professional (With Charts & Summary)</option>
+                    <option value="compact">Compact (Data Only)</option>
+                    <option value="detailed">Detailed (All Fields + Notes)</option>
+                </select>
+            </div>
+
+            <!-- Charts -->
+            <div class="form-group">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                    <input type="checkbox" asp-for="IncludeCharts" checked style="width:18px;height:18px;">
+                    <span>Include Charts & Analytics</span>
+                </label>
+            </div>
+
+            <!-- Chart Type -->
+            <div class="form-group" id="chart-type-group">
+                <label class="form-label">Chart Types</label>
+                <select class="form-control" asp-for="ChartType">
+                    <option value="both">Pie + Bar Charts</option>
+                    <option value="pie">Pie Chart Only</option>
+                    <option value="bar">Bar Chart Only</option>
+                    <option value="none">No Charts</option>
+                </select>
+            </div>
+
+            <!-- Summary -->
+            <div class="form-group">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                    <input type="checkbox" asp-for="IncludeSummary" checked style="width:18px;height:18px;">
+                    <span>Include Summary Cards</span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:12px;padding:14px;font-size:15px;">
+                <span>🚀</span> Generate Report
+            </button>
+        </div>
+
+    </div>
+</form>
+
+
+    <style>
+        .report-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            background: var(--bg);
+            padding: 6px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .report-tab {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-2);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+            .report-tab:hover {
+                background: var(--bg-hover);
+            }
+
+            .report-tab.active {
+                background: var(--primary);
+                color: white;
+                box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+            }
+
+        .report-card {
+            height: fit-content;
+        }
+
+        .fields-section {
+            margin-top: 16px;
+            border-top: 1px solid var(--border);
+            padding-top: 12px;
+        }
+
+        .fields-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 0;
+            user-select: none;
+        }
+
+            .fields-title:hover {
+                color: var(--primary);
+            }
+
+        .toggle-icon {
+            margin-left: auto;
+            transition: transform 0.2s;
+            font-size: 10px;
+        }
+
+        .fields-title.collapsed .toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        .fields-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 8px;
+            padding: 8px;
+            background: var(--bg);
+            border-radius: 8px;
+        }
+
+            .fields-grid label {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 12px;
+                color: var(--text-2);
+                cursor: pointer;
+                padding: 4px;
+                border-radius: 4px;
+                transition: background 0.15s;
+            }
+
+                .fields-grid label:hover {
+                    background: var(--bg-hover);
+                }
+
+            .fields-grid input[type="checkbox"] {
+                width: 14px;
+                height: 14px;
+                accent-color: var(--primary);
+            }
+
+        .format-toggle {
+            display: flex;
+            gap: 8px;
+        }
+
+        .format-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid var(--border);
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-2);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+            .format-btn:hover {
+                border-color: var(--primary);
+                color: var(--primary);
+            }
+
+            .format-btn.active {
+                border-color: var(--primary);
+                background: var(--primary-lt);
+                color: var(--primary);
+            }
+
+        /* Hide sections when not needed */
+        .hidden-section {
+            display: none !important;
+        }
+    </style>
+
+
+@section Scripts {
+    <script>
+        function setReportType(btn) {
+            // Update tabs
+            document.querySelectorAll('.report-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+
+            const type = btn.dataset.type;
+            document.getElementById('reportType').value = type;
+
+            // Show/hide filter sections
+            const deviceFilters = document.getElementById('device-filters');
+            const maintFilters = document.getElementById('maintenance-filters');
+
+            if (type === 'device') {
+                deviceFilters.style.display = 'block';
+                maintFilters.style.display = 'none';
+            } else if (type === 'maintenance') {
+                deviceFilters.style.display = 'none';
+                maintFilters.style.display = 'block';
+            } else {
+                deviceFilters.style.display = 'block';
+                maintFilters.style.display = 'block';
+            }
+        }
+
+        function setFormat(btn) {
+            document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const format = btn.dataset.format;
+            document.getElementById('formatType').value = format;
+
+            // Show/hide PDF-specific options
+            const pdfGroup = document.getElementById('pdf-template-group');
+            const chartGroup = document.getElementById('chart-type-group');
+
+            if (format === 'pdf') {
+                pdfGroup.style.display = 'block';
+                chartGroup.style.display = 'block';
+            } else {
+                pdfGroup.style.display = 'none';
+                chartGroup.style.display = 'none';
+            }
+        }
+
+        function toggleFields(id) {
+            const grid = document.getElementById(id);
+            const title = grid.previousElementSibling;
+
+            if (grid.style.display === 'none') {
+                grid.style.display = 'grid';
+                title.classList.remove('collapsed');
+            } else {
+                grid.style.display = 'none';
+                title.classList.add('collapsed');
+            }
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function () {
+            // Ensure correct initial state
+            const activeTab = document.querySelector('.report-tab.active');
+            if (activeTab) setReportType(activeTab);
+        });
+    </script>
+}

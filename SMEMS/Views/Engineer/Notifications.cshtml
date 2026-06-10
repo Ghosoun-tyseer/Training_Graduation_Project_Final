@@ -1,0 +1,73 @@
+@model IEnumerable<SMEMS.Models.Notification>
+@{
+    ViewData["Title"] = "Notifications";
+
+    var currentFilter = ViewBag.CurrentFilter as string ?? "all";
+}
+
+<div class="page-header-row">
+    <div>
+        <div class="page-title">Notifications</div>
+        <div class="page-subtitle">Your alerts and updates</div>
+    </div>
+</div>
+
+<div class="tab-bar" style="margin-top:16px;">
+    <a href="?filter=all" class="tab-btn @(currentFilter == "all" ? "active" : "")">All</a>
+    <a href="?filter=unread" class="tab-btn @(currentFilter == "unread" ? "active" : "")">Unread</a>
+    <a href="?filter=read" class="tab-btn @(currentFilter == "read" ? "active" : "")">Read</a>
+</div>
+
+@foreach (var n in Model)
+
+{
+    <div class="notif-item @(n.IsRead ? "" : "unread")">
+        <div class="notif-icon" style="background:var(--primary-lt);color:var(--primary)">🔔</div>
+        <div class="notif-body">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div class="notif-title">@n.Title</div>
+                <span class="notif-time">@n.CreatedAt.ToString("M/d/yyyy, h:mm tt")</span>
+            </div>
+            <div class="notif-msg">@n.Message</div>
+            <div class="notif-meta">
+                <span class="badge b-pending" style="font-size:11px;">@(n.NotificationType ?? "General")</span>
+                @if (!string.IsNullOrEmpty(n.Priority))
+
+                {
+                    <span class="badge @(n.Priority == "high" ? "b-high" : n.Priority == "medium" ? "b-medium" : "b-low")"
+                          style="font-size:11px;">@n.Priority</span>
+                }
+            </div>
+        </div>
+        <div class="notif-acts">
+            @if (!n.IsRead)
+
+            {
+                <form asp-action="MarkNotifRead" asp-controller="Engineer" method="post" style="display:inline;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@n.NotificationId" />
+                    <button type="submit" class="ibtn" style="color:var(--success);" title="Mark as read">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                    </button>
+                </form>
+            }
+            <form asp-action="DeleteNotif" asp-controller="Engineer" method="post" style="display:inline;">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@n.NotificationId" />
+                <button type="submit" class="ibtn ibtn-del" title="Delete">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+}
+@if (!Model.Any())
+
+{
+    <div style="text-align:center;padding:60px;color:var(--text-3);">No notifications found.</div>
+}

@@ -1,0 +1,67 @@
+@* ─── Staff/MyRequests.cshtml ─── *@
+@model IEnumerable<SMEMS.Models.MaintenanceRequest>
+@{
+    ViewData["Title"] = "My Requests";
+}
+
+<div class="page-header">
+    <div class="page-title">My Requests</div>
+    <div class="page-subtitle">Track your maintenance requests</div>
+</div>
+
+<div class="tab-bar">
+    <a asp-action="MyRequests" asp-controller="Staff"
+       class="tab-btn @(string.IsNullOrEmpty(Context.Request.Query["status"]) ? "active" : "")">All</a>
+    <a asp-action="MyRequests" asp-controller="Staff" asp-route-status="Pending"
+       class="tab-btn @(Context.Request.Query["status"] == "Pending" ? "active" : "")">Pending</a>
+    <a asp-action="MyRequests" asp-controller="Staff" asp-route-status="In Progress"
+       class="tab-btn @(Context.Request.Query["status"] == "In Progress" ? "active" : "")">In Progress</a>
+    <a asp-action="MyRequests" asp-controller="Staff" asp-route-status="Completed"
+       class="tab-btn @(Context.Request.Query["status"] == "Completed" ? "active" : "")">Completed</a>
+</div>
+
+<div style="margin-top:16px;">
+@foreach (var r in Model)
+{
+    <div class="req-card">
+        <div class="rc-head">
+            <span class="rc-title">@r.Device.Name</span>
+            <span class="badge @(r.Status == "Pending" ? "b-pending" : r.Status == "In Progress" ? "b-inprogress" : "b-completed")">
+                @r.Status
+            </span>
+            <span class="badge @(r.RiskLevel == "High" || r.RiskLevel == "Critical" ? "b-high" : r.RiskLevel == "Medium" ? "b-medium" : "b-low")">
+                @r.RiskLevel
+            </span>
+        </div>
+        <div class="rc-desc">@r.IssueTitle</div>
+        @if (!string.IsNullOrEmpty(r.IssueDescription))
+        {
+            <div class="rc-detail">@r.IssueDescription</div>
+        }
+        @if (r.AssignedEngineer != null)
+        {
+            <div class="eng-name" style="margin-top:6px;">Assigned to: @r.AssignedEngineer.FullName</div>
+        }
+        <div class="rc-foot">
+            <span class="rc-date">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+                @r.RequestDate.ToString("M/d/yyyy")
+            </span>
+            @if (r.HasAlternative)
+            {
+                <span class="rc-alt alt-yes">✓ Alternative available</span>
+            }
+            else
+            {
+                <span class="rc-alt alt-no">✗ No alternative</span>
+            }
+        </div>
+    </div>
+}
+@if (!Model.Any())
+{
+    <div style="text-align:center;padding:60px;color:var(--text-3);">No requests found.</div>
+}
+</div>

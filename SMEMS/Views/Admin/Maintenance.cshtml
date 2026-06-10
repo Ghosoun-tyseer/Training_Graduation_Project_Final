@@ -1,0 +1,122 @@
+
+@model IEnumerable<SMEMS.Models.MaintenanceRequest>
+@{
+    ViewData["Title"] = "Maintenance Management";
+
+    var engineers = ViewBag.Engineers as IEnumerable<Engineer>
+                     ?? Enumerable.Empty<Engineer>();
+}
+
+<div class="page-header">
+    <div class="page-title">Maintenance Management</div>
+    <div class="page-subtitle">All maintenance requests across departments</div>
+</div>
+
+<form method="get" class="filter-bar">
+    <div class="search-box">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input type="text" name="search" placeholder="Search requests..."
+               value="@ViewBag.Search" />
+    </div>
+
+    <select name="status" class="filter-select" onchange="this.form.submit()">
+        <option value="" selected="@(string.IsNullOrEmpty(ViewBag.Status))">All Status</option>
+        <option value="Pending" selected="@(ViewBag.Status == "Pending")">Pending</option>
+        <option value="Completed" selected="@(ViewBag.Status == "Completed")">Completed</option>
+        <option value="In Progress" selected="@(ViewBag.Status == "In Progress")">In Progress</option>
+    </select>
+
+    <select name="risk" class="filter-select" onchange="this.form.submit()">
+        <option value="" selected="@(string.IsNullOrEmpty(ViewBag.Risk))">All Risk</option>
+        <option value="Low" selected="@(ViewBag.Risk == "Low")">Low</option>
+        <option value="Medium" selected="@(ViewBag.Risk == "Medium")">Medium</option>
+        <option value="High" selected="@(ViewBag.Risk == "High")">High</option>
+        <option value="Critical" selected="@(ViewBag.Risk == "Critical")">Critical</option>
+    </select>
+</form>
+
+<div class="card table-wrap">
+    <table class="tbl">
+        <thead>
+            <tr>
+                <th>Request ID</th><th>Device</th><th>Issue</th><th>Department</th>
+                <th>Risk</th><th>Status</th><th>Date</th><th>Engineer</th><th>Alt.</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var r in Model)
+        {
+            <tr>
+                <td><code>@r.RequestCode</code></td>
+                <td>
+                    <div class="dev-name">@r.Device.Name</div>
+                    <div class="dev-model">@r.Device.DeviceCode</div>
+                </td>
+                <td style="font-size:12px;">@r.IssueTitle</td>
+                <td>@r.Device.Department?.Name</td>
+                <td>
+                    <span class="badge @(r.RiskLevel == "Low" ? "b-low" : r.RiskLevel == "Medium" ? "b-medium" : r.RiskLevel == "High" ? "b-high" : "b-critical")">
+                        @r.RiskLevel
+                    </span>
+                </td>
+                <td>
+                    <span class="badge @(r.Status == "Pending" ? "b-pending" : r.Status == "In Progress" ? "b-inprogress" : "b-completed")">
+                        @r.Status
+                    </span>
+                </td>
+                <td style="font-size:12px;">@r.RequestDate.ToString("M/d/yyyy")</td>
+                <td style="font-size:12px;color:var(--text-2);">
+                    @(r.AssignedEngineer != null ? r.AssignedEngineer.FullName : "—")
+                </td>
+                <td>
+                    @if (r.HasAlternative)
+                    {
+                        <span class="alt-yes-text">Yes</span>
+                    }
+                    else
+                    {
+                        <span class="alt-no-text">No</span>
+                    }
+                </td>
+                    <td class="actions-cell">
+                        @if (r.Status == "Pending")
+
+                        {
+                            <form asp-action="AssignEngineer" asp-controller="Admin" method="post" style="display:flex;gap:6px;align-items:center;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="requestId" value="@r.RequestId" />
+                                <select name="engineerId" class="filter-select" style="min-width:140px;font-size:12px;padding:4px 8px;">
+                                    <option value="">Select Engineer</option>
+                                    @foreach (var e in engineers)
+
+                                    {
+                                        <option value="@e.EngineerId">@e.FullName</option>
+                                    }
+                                </select>
+                                <button type="submit" class="ibtn ibtn-check" title="Assign">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                </button>
+                            </form>
+                        }
+
+                        else
+
+                        {
+                            <span style="font-size:11px;color:var(--text-3);">Assigned</span>
+                        }
+                    </td>
+            </tr>
+        }
+        @if (!Model.Any())
+        {
+            <tr><td colspan="9" style="text-align:center;color:var(--text-3);padding:40px;">No maintenance requests found.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>

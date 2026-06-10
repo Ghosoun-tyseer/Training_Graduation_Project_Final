@@ -1,0 +1,169 @@
+@model DeviceFormViewModel
+@{
+    var isEdit = Model.DeviceId.HasValue;
+    ViewData["Title"] = isEdit ? "Edit Device" : "Add Device";
+    var departments   = ViewBag.Departments   as IEnumerable<SMEMS.Models.Department>    ?? Enumerable.Empty<SMEMS.Models.Department>();
+    var manufacturers = ViewBag.Manufacturers as IEnumerable<SMEMS.Models.Manufacturer>  ?? Enumerable.Empty<SMEMS.Models.Manufacturer>();
+    var suppliers     = ViewBag.Suppliers     as IEnumerable<SMEMS.Models.Supplier>       ?? Enumerable.Empty<SMEMS.Models.Supplier>();
+}
+
+<div class="page-header">
+    <div class="page-title">@(isEdit ? "Edit Device" : "Add New Device")</div>
+</div>
+
+<div class="card" style="max-width:900px;">
+    <form asp-action="@(isEdit ? "EditDevice" : "AddDevice")" asp-controller="Admin"
+          method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="DeviceId" />
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger" style="margin-bottom:16px;">
+                @foreach (var err in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <div>@err.ErrorMessage</div>
+                }
+            </div>
+        }
+
+        <!-- Identification -->
+        <div class="form-section">
+            <div class="form-section-title">Device Identification</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="DeviceCode" class="form-label req"></label>
+                    <input asp-for="DeviceCode" class="form-control" placeholder="e.g. DEV-001" />
+                    <span asp-validation-for="DeviceCode" class="val-msg"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="SerialNumber" class="form-label req"></label>
+                    <input asp-for="SerialNumber" class="form-control" placeholder="e.g. SN-2024-001" />
+                    <span asp-validation-for="SerialNumber" class="val-msg"></span>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="Name" class="form-label req"></label>
+                    <input asp-for="Name" class="form-control" placeholder="Device name" />
+                    <span asp-validation-for="Name" class="val-msg"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="ModelNumber" class="form-label"></label>
+                    <input asp-for="ModelNumber" class="form-control" placeholder="Model number" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Location & Classification -->
+        <div class="form-section">
+            <div class="form-section-title">Location & Classification</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="DepartmentId" class="form-label req"></label>
+                    <select asp-for="DepartmentId" class="form-control">
+                        <option value="">Select Department</option>
+                        @foreach (var d in departments)
+                        {
+                            <option value="@d.DepartmentId">@d.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="DepartmentId" class="val-msg"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Location" class="form-label"></label>
+                    <input asp-for="Location" class="form-control" placeholder="e.g. ICU – Room 101" />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="Status" class="form-label req"></label>
+                    <select asp-for="Status" class="form-control">
+                        <option value="Operational">Operational</option>
+                        <option value="Maintenance Needed">Maintenance Needed</option>
+                        <option value="Under Maintenance">Under Maintenance</option>
+                        <option value="Out Of Service">Out of Service</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label asp-for="RiskLevel" class="form-label req"></label>
+                    <select asp-for="RiskLevel" class="form-control">
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                        <option value="Critical">Critical</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Procurement -->
+        <div class="form-section">
+            <div class="form-section-title">Procurement</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="ManufacturerId" class="form-label"></label>
+                    <select asp-for="ManufacturerId" class="form-control">
+                        <option value="">Select Manufacturer</option>
+                        @foreach (var m in manufacturers)
+                        {
+                            <option value="@m.ManufacturerId">@m.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label asp-for="SupplierId" class="form-label"></label>
+                    <select asp-for="SupplierId" class="form-control">
+                        <option value="">Select Supplier</option>
+                        @foreach (var s in suppliers)
+                        {
+                            <option value="@s.SupplierId">@s.Name</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="PurchaseDate" class="form-label"></label>
+                    <input asp-for="PurchaseDate" type="date" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="WarrantyStartDate"></label>
+                    <input asp-for="WarrantyStartDate" type="date" class="form-control" />
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="WarrantyEndDate"></label>
+                    <input asp-for="WarrantyEndDate" type="date" class="form-control" />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="ExpectedLifespan" class="form-label"></label>
+                    <input asp-for="ExpectedLifespan" class="form-control" placeholder="e.g. 10 years" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="NextMaintenanceDate" class="form-label"></label>
+                    <input asp-for="NextMaintenanceDate" type="date" class="form-control" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="form-section" style="margin-bottom:0;">
+            <div class="form-section-title">Notes</div>
+            <div class="form-group">
+                <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Additional notes..."></textarea>
+            </div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
+            <a asp-action="Devices" asp-controller="Admin" class="btn btn-outline">Cancel</a>
+            <button type="submit" class="btn btn-primary">@(isEdit ? "Save Changes" : "Add Device")</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

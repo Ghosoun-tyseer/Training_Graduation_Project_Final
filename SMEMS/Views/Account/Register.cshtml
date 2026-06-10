@@ -1,0 +1,131 @@
+@model RegisterViewModel
+@{
+    ViewData["Title"] = "Add User";
+    var departments = ViewBag.Departments as IEnumerable<SMEMS.Models.Department> ?? Enumerable.Empty<SMEMS.Models.Department>();
+}
+
+<div class="page-header"><div class="page-title">Add New User</div></div>
+
+<div class="card" style="max-width:860px;">
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger" style="margin-bottom:16px;">
+            @foreach (var err in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <div>@err.ErrorMessage</div>
+            }
+        </div>
+    }
+
+    <form asp-action="Register" asp-controller="Account" method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+
+        <!-- Avatar preview header -->
+        <div style="display:flex;align-items:center;gap:16px;padding-bottom:20px;border-bottom:1px solid var(--border);margin-bottom:20px;">
+            <div class="profile-av" id="av-preview">?</div>
+            <div style="flex:1;">
+                <p style="font-size:13px;color:var(--text-2);margin:0;">Fill in the form below to create a new system user</p>
+            </div>
+        </div>
+
+        <!-- Personal Information -->
+        <div class="form-section">
+            <div class="form-section-title">Personal Information</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="FullName" class="form-label req"></label>
+                    <input asp-for="FullName" class="form-control" placeholder="Full Name"
+                           oninput="document.getElementById('av-preview').textContent=this.value.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase()||'?'" />
+                    <span asp-validation-for="FullName" class="val-msg"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Username" class="form-label req"></label>
+                    <input asp-for="Username" class="form-control" placeholder="username" />
+                    <span asp-validation-for="Username" class="val-msg"></span>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="Email" class="form-label req"></label>
+                    <input asp-for="Email" class="form-control" placeholder="name@hospital.com" />
+                    <span asp-validation-for="Email" class="val-msg"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Phone" class="form-label"></label>
+                    <input asp-for="Phone" class="form-control" placeholder="07XXXXXXXX" />
+                    <span asp-validation-for="Phone" class="val-msg"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Work Information -->
+        <div class="form-section">
+            <div class="form-section-title">Work Information</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="Role" class="form-label req"></label>
+                    <select asp-for="Role" class="form-control">
+                        <option value="">Select Role</option>
+                        <option value="admin">Administrator</option>
+                        <option value="engineer">Engineer</option>
+                        <option value="staff">Medical Staff</option>
+                    </select>
+                    <span asp-validation-for="Role" class="val-msg"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="DepartmentId" class="form-label"></label>
+                    <select asp-for="DepartmentId" class="form-control">
+                        <option value="">Select Department</option>
+                        @foreach (var d in departments)
+                        {
+                            <option value="@d.DepartmentId">@d.Name</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="JobTitle" class="form-label"></label>
+                    <input asp-for="JobTitle" class="form-control" placeholder="Doctor / Nurse / Engineer..." />
+                </div>
+            </div>
+        </div>
+
+        <!-- Security -->
+        <div class="form-section">
+            <div class="form-section-title">Security</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="Password" class="form-label req"></label>
+                    <input asp-for="Password" class="form-control" placeholder="Password" />
+                    <span asp-validation-for="Password" class="val-msg"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="ConfirmPassword" class="form-label req"></label>
+                    <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm Password" />
+                    <span asp-validation-for="ConfirmPassword" class="val-msg"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Avatar Upload -->
+        <div class="form-section" style="margin-bottom:0;">
+            <div class="form-section-title">Profile Photo (optional)</div>
+            <div class="form-group">
+                <label asp-for="AvatarFile" class="form-label"></label>
+                <input asp-for="AvatarFile" type="file" class="form-control" accept="image/*" />
+                <small style="color:var(--text-3);font-size:12px;">Max 2MB – JPG, PNG, GIF or WebP</small>
+            </div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
+            <a asp-controller="Admin" asp-action="Users" class="btn btn-outline">Cancel</a>
+            <button type="submit" class="btn btn-primary">Create User</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

@@ -1,0 +1,124 @@
+@{
+    var role = Context.Session.GetString("smems_user_role");
+
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+
+
+
+    string IsActive(string ctrl, string? act = null)
+
+    {
+
+        bool match = controller == ctrl && (act == null || action == act);
+
+        return match ? "active" : "";
+
+    }
+}
+
+@if (role == "admin")
+
+{
+    <a asp-controller="Admin" asp-action="Index" class="nav-link @IsActive("Admin","Index")">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></svg>
+        Dashboard
+    </a>
+    <a asp-controller="Admin" asp-action="Devices" class="nav-link @IsActive("Admin","Devices")">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
+        Devices
+    </a>
+    <a asp-controller="Admin" asp-action="Maintenance" class="nav-link @IsActive("Admin","Maintenance")">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></svg>
+        Maintenance
+    </a>
+    <a asp-controller="Admin" asp-action="Users" class="nav-link @IsActive("Admin","Users")">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+        Users
+    </a>
+    <a asp-controller="Account" asp-action="Register" class="nav-link @IsActive("Account","Register")">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /><line x1="12" y1="3" x2="12" y2="3" /></svg>
+        Add User
+    </a>
+    <a asp-controller="Admin" asp-action="Reports" class="nav-link @IsActive("Admin","Reports")">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>
+        Reports
+    </a>
+    <a asp-controller="Admin" asp-action="Notifications" class="nav-link @IsActive("Admin","Notifications")">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+        Notifications
+    </a>
+    <a asp-controller="Account" asp-action="Profile" class="nav-link @IsActive("Account","Profile")">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+        Profile
+    </a>
+
+  
+    <a asp-controller="Account" asp-action="EditProfile" class="nav-link @IsActive("Account","EditProfile")">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
+        Edit Profile
+    </a>
+
+
+}
+
+else if (role == "engineer")
+
+{
+    <a asp-controller="Engineer" asp-action="Index" class="nav-link @IsActive("Engineer","Index")">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></svg>
+        Dashboard
+    </a>
+    <a asp-controller="Engineer" asp-action="Maintenance" class="nav-link @IsActive("Engineer","Maintenance")">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></svg>
+        Maintenance
+    </a>
+    <a asp-controller="Engineer" asp-action="Devices" class="nav-link @IsActive("Engineer","Devices")">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
+        Devices
+    </a>
+    <a asp-controller="Engineer" asp-action="Notifications" class="nav-link @IsActive("Engineer","Notifications")">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+        Notifications
+    </a>
+    <a asp-controller="Account" asp-action="Profile" class="nav-link @IsActive("Account","Profile")">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+        Profile
+    </a>
+
+    <a asp-controller="Account" asp-action="EditProfile" class="nav-link @IsActive("Account","EditProfile")">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
+        Edit Profile
+    </a>
+}
+
+else if (role == "staff")
+
+{
+    <a asp-controller="Staff" asp-action="Index" class="nav-link @IsActive("Staff","Index")">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></svg>
+        Dashboard
+    </a>
+    <a asp-controller="Staff" asp-action="Devices" class="nav-link @IsActive("Staff","Devices")">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
+        My Devices
+    </a>
+    <a asp-controller="Staff" asp-action="MyRequests" class="nav-link @IsActive("Staff","MyRequests")">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></svg>
+        My Requests
+    </a>
+    <a asp-controller="Staff" asp-action="Notifications" class="nav-link @IsActive("Staff","Notifications")">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+        Notifications
+    </a>
+    <a asp-controller="Account" asp-action="Profile" class="nav-link @IsActive("Account","Profile")">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+        Profile
+    </a>
+
+    <a asp-controller="Account" asp-action="EditProfile" class="nav-link @IsActive("Account","EditProfile")">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
+        Edit Profile
+    </a>
+}

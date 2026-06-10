@@ -1,0 +1,85 @@
+@model LoginViewModel
+@{
+    Layout    = "_LoginLayout";
+    ViewData["Title"] = "Sign In";
+}
+
+<div class="login-page">
+    <div class="login-brand">
+        <div class="login-logo">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+        </div>
+        <h1>SMEMS</h1>
+        <p>Smart Medical Equipment Management System</p>
+    </div>
+
+    <div class="login-card">
+        <h2>Sign In</h2>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger" style="margin-bottom:16px;">
+                @foreach (var err in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <div>@err.ErrorMessage</div>
+                }
+            </div>
+        }
+
+        <form asp-action="Login" asp-controller="Account" method="post">
+            @Html.AntiForgeryToken()
+
+            <!-- Username -->
+            <div class="form-group">
+                <label asp-for="Username" class="form-label"></label>
+                <div class="input-wrap">
+                    <span class="i-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </span>
+                    <input asp-for="Username" class="form-control" placeholder="Enter your username" autocomplete="username" />
+                </div>
+                <span asp-validation-for="Username" class="text-danger val-msg"></span>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+                <label asp-for="Password" class="form-label"></label>
+                <div class="input-wrap">
+                    <span class="i-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                    </span>
+                    <input asp-for="Password" class="form-control" placeholder="Enter your password" autocomplete="current-password" />
+                </div>
+                <span asp-validation-for="Password" class="val-msg"></span>
+            </div>
+
+          
+
+            <!-- Remember Me -->
+            <div class="form-group" style="display:flex;align-items:center;gap:8px;">
+                <input asp-for="RememberMe" type="checkbox" id="rememberMe" />
+                <label for="rememberMe" style="margin:0;font-size:13px;cursor:pointer;">Remember me</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+        </form>
+
+        <div style="text-align:center;margin-top:14px;">
+            <a class="forgot-link" asp-controller="Account" asp-action="ForgotPassword">Forgot your password?</a>
+        </div>
+    </div>
+
+    <div class="login-foot">© 2026 SMEMS. All rights reserved.</div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

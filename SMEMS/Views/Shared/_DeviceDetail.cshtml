@@ -1,0 +1,68 @@
+﻿@model SMEMS.Models.Device
+@{
+    // لا تحتاج Layout لأنه Partial
+    var returnController = ViewBag.ReturnController as string ?? "Staff";
+}
+
+<div class="page-header">
+    <div class="page-title">Device Details</div>
+    <div class="page-subtitle">@Model.Name — @Model.DeviceCode</div>
+</div>
+
+<div class="card" style="max-width:700px;">
+    <div class="info-2col" style="gap:12px;">
+        <div class="info-field">
+            <div class="field-lbl">Device Code</div>
+            <div class="field-val"><code>@Model.DeviceCode</code></div>
+        </div>
+        <div class="info-field">
+            <div class="field-lbl">Serial Number</div>
+            <div class="field-val"><code>@Model.SerialNumber</code></div>
+        </div>
+        <div class="info-field">
+            <div class="field-lbl">Department</div>
+            <div class="field-val">@(Model.Department?.Name ?? "—")</div>
+        </div>
+        <div class="info-field">
+            <div class="field-lbl">Location</div>
+            <div class="field-val">@(Model.Location ?? "—")</div>
+        </div>
+        <div class="info-field">
+            <div class="field-lbl">Status</div>
+            <div class="field-val">
+                <span class="badge @(Model.Status == "Operational" ? "b-operational" : Model.Status == "Maintenance Needed" ? "b-needed" : Model.Status == "Under Maintenance" ? "b-inprogress" : "b-outofservice")">
+                    @Model.Status
+                </span>
+            </div>
+        </div>
+        <div class="info-field">
+            <div class="field-lbl">Risk Level</div>
+            <div class="field-val">
+                <span class="badge @(Model.RiskLevel == "Low" ? "b-low" : Model.RiskLevel == "Medium" ? "b-medium" : "b-high")">
+                    @Model.RiskLevel
+                </span>
+            </div>
+        </div>
+        <div class="info-field">
+            <div class="field-lbl">Purchase Date</div>
+            <div class="field-val">@(Model.PurchaseDate?.ToString("MM/dd/yyyy") ?? "—")</div>
+        </div>
+        <div class="info-field">
+            <div class="field-lbl">Next Maintenance</div>
+            <div class="field-val">@(Model.NextMaintenanceDate?.ToString("MM/dd/yyyy") ?? "—")</div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.Notes))
+    {
+        <div style="margin-top:16px;padding:12px;background:var(--bg);border-radius:8px;">
+            <div class="field-lbl">Notes</div>
+            <div style="font-size:13px;color:var(--text-2);">@Model.Notes</div>
+        </div>
+    }
+
+    <div style="margin-top:20px;display:flex;gap:10px;">
+        <a href="@Url.Action("Devices", returnController)" class="btn btn-outline">← Back</a>
+        <a href="@Url.Action("DeviceHistory", returnController, new { deviceId = Model.DeviceId })" class="btn btn-ghost">View History</a>
+    </div>
+</div>

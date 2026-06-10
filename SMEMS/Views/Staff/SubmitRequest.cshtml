@@ -1,0 +1,78 @@
+@* ─── Staff/SubmitRequest.cshtml ─── *@
+@model MaintenanceRequestViewModel
+@{
+    ViewData["Title"] = "Submit Request";
+    var devices = ViewBag.Devices as IEnumerable<SMEMS.Models.Device>
+                  ?? Enumerable.Empty<SMEMS.Models.Device>();
+}
+
+<div class="page-header">
+    <div class="page-title">Submit Maintenance Request</div>
+    <div class="page-subtitle">Report a device issue for maintenance</div>
+</div>
+
+<div class="card" style="max-width:700px;">
+    <form asp-action="SubmitRequest" asp-controller="Staff" method="post">
+        @Html.AntiForgeryToken()
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger" style="margin-bottom:16px;">
+                @foreach (var err in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <div>@err.ErrorMessage</div>
+                }
+            </div>
+        }
+
+        <div class="form-group">
+            <label asp-for="DeviceId" class="form-label req"></label>
+            <select asp-for="DeviceId" class="form-control">
+                <option value="0">— Select Device —</option>
+                @foreach (var d in devices)
+                {
+                    <option value="@d.DeviceId">@d.Name (@d.DeviceCode) – @d.Department?.Name</option>
+                }
+            </select>
+            <span asp-validation-for="DeviceId" class="val-msg"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="IssueTitle" class="form-label req"></label>
+            <input asp-for="IssueTitle" class="form-control" placeholder="Brief description of the issue" />
+            <span asp-validation-for="IssueTitle" class="val-msg"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="IssueDescription" class="form-label">Detailed Description</label>
+            <textarea asp-for="IssueDescription" class="form-control" rows="4"
+                      placeholder="Describe the problem in detail..."></textarea>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label asp-for="RiskLevel" class="form-label req"></label>
+                <select asp-for="RiskLevel" class="form-control">
+                    <option value="Low">Low – Minor, no immediate impact</option>
+                    <option value="Medium">Medium – Some impact on operations</option>
+                    <option value="High">High – Significant operational impact</option>
+                    <option value="Critical">Critical – Patient safety at risk</option>
+                </select>
+                <span asp-validation-for="RiskLevel" class="val-msg"></span>
+            </div>
+            <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:24px;">
+                <input asp-for="HasAlternative" type="checkbox" id="hasAlt" />
+                <label for="hasAlt" asp-for="HasAlternative" style="margin:0;cursor:pointer;font-size:13px;">
+                    Alternative device available
+                </label>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+            <a asp-action="MyRequests" asp-controller="Staff" class="btn btn-outline">Cancel</a>
+            <button type="submit" class="btn btn-primary">Submit Request</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts { @await Html.PartialAsync("_ValidationScriptsPartial") }

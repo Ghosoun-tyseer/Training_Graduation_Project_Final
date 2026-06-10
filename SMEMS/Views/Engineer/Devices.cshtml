@@ -1,0 +1,88 @@
+@* ─── Engineer/Devices.cshtml ─── *@
+@model IEnumerable<SMEMS.Models.Device>
+@{
+    ViewData["Title"] = "Devices";
+}
+
+<div class="page-header">
+    <div class="page-title">All Devices</div>
+    <div class="page-subtitle">Medical equipment status overview</div>
+</div>
+
+<form method="get" class="filter-bar">
+    <div class="search-box">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input type="text" name="search" placeholder="Search devices..." value="@Context.Request.Query["search"]" />
+    </div>
+    <select name="status" class="filter-select" onchange="this.form.submit()">
+        <option value="">All Status</option>
+        <option value="Operational" selected="@(Context.Request.Query["status"] == "Operational")">Operational</option>
+        <option value="Maintenance Needed" selected="@(Context.Request.Query["status"] == "Maintenance Needed")">Maintenance Needed</option>
+        <option value="Under Maintenance" selected="@(Context.Request.Query["status"] == "Under Maintenance")">Under Maintenance</option>
+        <option value="Out of Service" selected="@(Context.Request.Query["status"] == "Out of Service")">Out of Service</option>
+    </select>
+</form>
+
+<div class="card table-wrap">
+    <table class="tbl">
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Department</th>
+                <th>Status</th>
+                <th>Risk</th>
+                <th>Serial</th>
+                <th>Next Maint.</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var d in Model)
+            {
+                <tr>
+                    <td><code>@d.DeviceCode</code></td>
+                    <td><div class="dev-name">@d.Name</div><div class="dev-model">@d.ModelNumber</div></td>
+                    <td>@d.Department?.Name</td>
+                    <td>
+                        <span class="badge @(d.Status == "Operational" ? "b-operational" : d.Status == "Maintenance Needed" ? "b-needed" : d.Status == "Under Maintenance" ? "b-inprogress" : "b-outofservice")">
+                            @d.Status
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge @(d.RiskLevel == "Low" ? "b-low" : d.RiskLevel == "Medium" ? "b-medium" : "b-high")">
+                            @d.RiskLevel
+                        </span>
+                    </td>
+                    <td><code style="font-size:11px;">@d.SerialNumber</code></td>
+                    <td style="font-size:12px;color:var(--text-2);">@(d.NextMaintenanceDate?.ToString("MM/dd/yyyy") ?? "—")</td>
+                    <td class="actions-cell">
+                        <!-- عرض تفاصيل الجهاز ← DeviceDetail (وليس RequestDetail) -->
+                        <a href="@Url.Action("DeviceDetail", "Engineer", new { id = d.DeviceId })"
+                           class="ibtn ibtn-view" title="View device details">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="pointer-events:none;">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                        </a>
+                        <!-- تاريخ الصيانة  -->
+                        <a href="@Url.Action("DeviceHistory", "Engineer", new { deviceId = d.DeviceId })"
+                           class="ibtn ibtn-view" title="Maintenance history">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="pointer-events:none;">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                            </svg>
+                        </a>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any())
+            {
+                <tr><td colspan="8" style="text-align:center;color:var(--text-3);padding:40px;">No devices found.</td></tr>
+            }
+        </tbody>
+    </table>
+</div>

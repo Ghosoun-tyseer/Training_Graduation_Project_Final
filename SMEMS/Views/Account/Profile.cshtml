@@ -1,0 +1,65 @@
+@model ProfileViewModel
+@{
+    ViewData["Title"] = "Profile";
+    var initials = string.Join("", (Model.FullName ?? "?").Split(' ').Take(2).Select(w => w.Length > 0 ? w[0].ToString() : "")).ToUpper();
+}
+
+<div class="page-header"><div class="page-title">Profile</div></div>
+
+<div class="profile-hero">
+    @if (!string.IsNullOrEmpty(Model.Avatar))
+    {
+        <img src="@Model.Avatar" alt="avatar" class="profile-av avatar-img" style="object-fit:cover;" />
+    }
+    else
+    {
+        <div class="profile-av">@initials</div>
+    }
+    <div style="flex:1;">
+        <div class="profile-name">@Model.FullName</div>
+        <span class="badge @(Model.Role == "admin" ? "b-admin" : Model.Role == "engineer" ? "b-engineer" : "b-staff")"
+              style="margin-top:6px;display:inline-flex;">
+            @(Model.Role == "admin" ? "Administrator" : Model.Role == "engineer" ? "Engineer" : "Medical Staff")
+        </span>
+        <div class="profile-meta">
+            @if (!string.IsNullOrEmpty(Model.Department))
+            {
+                <span>@Model.Department Department</span>
+                <span style="opacity:.3;">|</span>
+            }
+            <span>Joined @Model.CreatedAt.ToString("MMM yyyy")</span>
+        </div>
+    </div>
+    <a asp-action="EditProfile" asp-controller="Account" class="btn btn-primary">Edit Profile</a>
+</div>
+
+<div class="info-section">
+    <div class="info-section-ttl">Personal Information</div>
+    <div class="info-2col">
+        <div class="info-field"><div class="field-lbl">Full Name</div><div class="field-val">@Model.FullName</div></div>
+        <div class="info-field"><div class="field-lbl">Username</div><div class="field-val">@Model.Username</div></div>
+        <div class="info-field"><div class="field-lbl">Email</div><div class="field-val">@Model.Email</div></div>
+        <div class="info-field"><div class="field-lbl">Phone</div><div class="field-val">@(Model.Phone ?? "—")</div></div>
+    </div>
+</div>
+
+<div class="info-section">
+    <div class="info-section-ttl">Work Information</div>
+    <div class="info-2col">
+        <div class="info-field">
+            <div class="field-lbl">Role</div>
+            <div class="field-val">@(Model.Role == "admin" ? "Administrator" : Model.Role == "engineer" ? "Engineer" : "Medical Staff")</div>
+        </div>
+        <div class="info-field"><div class="field-lbl">Department</div><div class="field-val">@(Model.Department ?? "—")</div></div>
+        @if (!string.IsNullOrEmpty(Model.JobTitle))
+        {
+            <div class="info-field"><div class="field-lbl">Job Title</div><div class="field-val">@Model.JobTitle</div></div>
+        }
+        <div class="info-field"><div class="field-lbl">Member Since</div><div class="field-val">@Model.CreatedAt.ToString("MMMM d, yyyy")</div></div>
+    </div>
+</div>
+
+<div class="info-section">
+    <div class="info-section-ttl">Security</div>
+    <a asp-action="ChangePassword" asp-controller="Account" class="btn btn-primary">🔒 Change Password</a>
+</div>

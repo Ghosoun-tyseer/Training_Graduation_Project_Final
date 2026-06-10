@@ -1,0 +1,68 @@
+﻿@model IEnumerable<SMEMS.Models.MaintenanceRequest>
+@{
+    var device = ViewBag.Device as SMEMS.Models.Device;
+    var returnController = ViewBag.ReturnController as string ?? "Staff";
+}
+
+<div class="page-header">
+    <div class="page-title">Maintenance History</div>
+    <div class="page-subtitle">@(device?.Name ?? "Device") — @(device?.DeviceCode ?? "")</div>
+</div>
+
+<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div>
+            <div style="font-weight:600;">@(device?.Name)</div>
+            <div style="font-size:12px;color:var(--text-2);">Serial: @(device?.SerialNumber ?? "—")</div>
+        </div>
+        <a href="@Url.Action("Devices", returnController)" class="btn btn-outline">← Back to Devices</a>
+    </div>
+
+    <div class="table-wrap">
+        <table class="tbl">
+            <thead>
+                <tr>
+                    <th>Request Code</th>
+                    <th>Issue</th>
+                    <th>Status</th>
+                    <th>Engineer</th>
+                    <th>Date</th>
+                    <th>Completed</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model)
+                {
+                    <tr>
+                        <td><code>@r.RequestCode</code></td>
+                        <td>
+                            <div style="font-weight:500;">@r.IssueTitle</div>
+                            @if (!string.IsNullOrEmpty(r.IssueDescription))
+                            {
+                                <div style="font-size:11px;color:var(--text-2);">@r.IssueDescription</div>
+                            }
+                        </td>
+                        <td>
+                            <span class="badge @(r.Status == "Pending" ? "b-pending" : r.Status == "In Progress" ? "b-inprogress" : "b-completed")">
+                                @r.Status
+                            </span>
+                        </td>
+                        <td>@(r.AssignedEngineer?.FullName ?? "—")</td>
+                        <td style="font-size:12px;">@r.RequestDate.ToString("MM/dd/yyyy")</td>
+                        <td style="font-size:12px;">
+                            @(r.CompletedAt?.ToString("MM/dd/yyyy") ?? "—")
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="6" style="text-align:center;color:var(--text-3);padding:40px;">
+                            No maintenance history found for this device.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

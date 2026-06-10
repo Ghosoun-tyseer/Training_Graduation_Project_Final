@@ -1,0 +1,124 @@
+@* ─── Engineer/Maintenance.cshtml ─── *@
+@model IEnumerable<SMEMS.Models.MaintenanceRequest>
+@{
+    ViewData["Title"] = "Maintenance";
+}
+
+<div class="page-header">
+    <div class="page-title">My Maintenance Requests</div>
+    <div class="page-subtitle">Manage your assigned maintenance tasks</div>
+</div>
+
+<form method="get" class="filter-bar">
+    <div class="search-box">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" name="search" placeholder="Search..." value="@Context.Request.Query["search"]" />
+    </div>
+    <select name="status" class="filter-select" onchange="this.form.submit()">
+
+        <option value="">All Status</option>
+
+        @if (Context.Request.Query["status"] == "Pending")
+
+        {
+            <option value="Pending" selected>Pending</option>
+        }
+
+        else
+
+        {
+            <option value="Pending">Pending</option>
+        }
+
+        @if (Context.Request.Query["status"] == "In Progress")
+
+        {
+            <option value="In Progress" selected>In Progress</option>
+        }
+
+        else
+
+        {
+            <option value="In Progress">In Progress</option>
+        }
+
+        @if (Context.Request.Query["status"] == "Completed")
+
+        {
+            <option value="Completed" selected>Completed</option>
+        }
+
+        else
+
+        {
+            <option value="Completed">Completed</option>
+        }
+
+    </select>
+    <select name="risk" class="filter-select" onchange="this.form.submit()">
+        <option value="">All Risk</option>
+        <option value="High">High</option>
+        <option value="Medium">Medium</option>
+        <option value="Low">Low</option>
+    </select>
+</form>
+
+<div class="card table-wrap">
+    <table class="tbl">
+        <thead>
+            <tr>
+                <th>Request ID</th><th>Device</th><th>Issue</th><th>Department</th>
+                <th>Risk</th><th>Status</th><th>Date</th><th>Alt.</th><th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var r in Model)
+        {
+            <tr>
+                <td><code>@r.RequestCode</code></td>
+                <td>
+                    <div class="dev-name">@r.Device.Name</div>
+                    <div class="dev-model">Reported by: @r.ReportedByStaff.FullName</div>
+                </td>
+                <td style="font-size:12px;">@r.IssueTitle</td>
+                <td>@r.Device.Department?.Name</td>
+                <td><span class="badge @(r.RiskLevel == "High" || r.RiskLevel == "Critical" ? "b-high" : r.RiskLevel == "Medium" ? "b-medium" : "b-low")">@r.RiskLevel</span></td>
+                <td><span class="badge @(r.Status == "Pending" ? "b-pending" : r.Status == "In Progress" ? "b-inprogress" : "b-completed")">@r.Status</span></td>
+                <td style="font-size:12px;">@r.RequestDate.ToString("M/d/yyyy")</td>
+                    <td>@(r.HasAlternative ? Html.Raw("<span class='alt-yes-text'>Yes</span>") : Html.Raw("<span class='alt-no-text'>No</span>"))</td>
+                <td class="actions-cell">
+                    <a asp-action="RequestDetail" asp-controller="Engineer" asp-route-id="@r.RequestId"
+                       class="ibtn ibtn-view" title="View">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </a>
+                    @if (r.Status == "Pending")
+                    {
+                        <form asp-action="StartMaintenance" asp-controller="Engineer" method="post" style="display:inline;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@r.RequestId" />
+                            <button type="submit" class="ibtn ibtn-play" title="Start">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                            </button>
+                        </form>
+                    }
+                    @if (r.Status == "In Progress")
+                    {
+                        <a asp-action="CompleteMaintenance" asp-controller="Engineer" asp-route-id="@r.RequestId"
+                           class="ibtn ibtn-check" title="Complete">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                        </a>
+                    }
+                </td>
+            </tr>
+        }
+        @if (!Model.Any())
+        {
+            <tr><td colspan="9" style="text-align:center;color:var(--text-3);padding:40px;">No requests found.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>

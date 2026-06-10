@@ -1,0 +1,74 @@
+@* ─── Engineer/CompleteMaintenance.cshtml ─── *@
+@model CompleteMaintenanceViewModel
+@{
+    ViewData["Title"] = "Complete Maintenance";
+    var request = ViewBag.Request as SMEMS.Models.MaintenanceRequest;
+    var types   = ViewBag.MaintenanceTypes as IEnumerable<SMEMS.Models.MaintenanceType>
+                  ?? Enumerable.Empty<SMEMS.Models.MaintenanceType>();
+}
+
+<div class="page-header">
+    <div class="page-title">Complete Maintenance</div>
+    <div class="page-subtitle">@request?.Device?.Name — @request?.RequestCode</div>
+</div>
+
+<div class="card" style="max-width:700px;">
+    @if (request != null)
+    {
+        <div style="background:var(--bg);border-radius:8px;padding:16px;margin-bottom:20px;border:1px solid var(--border);">
+            <div style="font-weight:600;margin-bottom:8px;">Request Summary</div>
+            <div class="info-2col" style="gap:8px;">
+                <div class="info-field"><div class="field-lbl">Device</div><div class="field-val">@request.Device.Name</div></div>
+                <div class="info-field"><div class="field-lbl">Issue</div><div class="field-val">@request.IssueTitle</div></div>
+                <div class="info-field"><div class="field-lbl">Risk</div><div class="field-val"><span class="badge @(request.RiskLevel == "High" ? "b-high" : request.RiskLevel == "Medium" ? "b-medium" : "b-low")">@request.RiskLevel</span></div></div>
+                <div class="info-field"><div class="field-lbl">Submitted</div><div class="field-val">@request.RequestDate.ToString("MMMM d, yyyy")</div></div>
+            </div>
+        </div>
+    }
+
+    <form asp-action="CompleteMaintenance" asp-controller="Engineer" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="RequestId" />
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger" style="margin-bottom:16px;">
+                @foreach (var err in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <div>@err.ErrorMessage</div>
+                }
+            </div>
+        }
+
+        <div class="form-group">
+            <label asp-for="MaintenanceTypeId" class="form-label">Maintenance Type</label>
+            <select asp-for="MaintenanceTypeId" class="form-control">
+                <option value="">Select Type</option>
+                @foreach (var t in types)
+                {
+                    <option value="@t.TypeId">@t.Name</option>
+                }
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="EngineerNotes" class="form-label">Engineer Notes</label>
+            <textarea asp-for="EngineerNotes" class="form-control" rows="3"
+                      placeholder="What was done, parts replaced, observations..."></textarea>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="CompletionNotes" class="form-label">Completion Notes <span style="color:var(--danger)">*</span></label>
+            <textarea asp-for="CompletionNotes" class="form-control" rows="4"
+                      placeholder="Summary of completed work, device condition after maintenance..."></textarea>
+            <span asp-validation-for="CompletionNotes" class="val-msg"></span>
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+            <a asp-action="Maintenance" asp-controller="Engineer" class="btn btn-outline">Cancel</a>
+            <button type="submit" class="btn btn-primary">✓ Mark as Completed</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts { @await Html.PartialAsync("_ValidationScriptsPartial") }
